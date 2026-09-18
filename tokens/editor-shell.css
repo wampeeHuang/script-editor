@@ -1,4 +1,14 @@
 /* Project shell: geometry is parameterized independently from its theme. */
+.settings-dialog { position:fixed; inset:0; width:min(35rem,calc(100vw - 2rem)); max-height:calc(100dvh - 4rem); margin:auto; padding:0; overflow:auto; border:1px solid var(--app-border); border-radius:var(--shell-radius); background:var(--app-surface); color:var(--app-text); }
+.settings-dialog::backdrop { background:color-mix(in oklab,var(--app-text) 20%,transparent); }
+.settings-dialog .dw-hd { display:flex; align-items:center; justify-content:space-between; padding:1rem 1.5rem; min-height:4rem; border-bottom:1px solid var(--app-border); }
+.settings-dialog .dw-hd .t { font:500 1.25rem var(--font-head); }
+.settings-dialog .dw-hd .x { width:2rem; height:2rem; border-radius:var(--shell-radius); }
+.settings-dialog .dw-bd { padding:1.5rem; }
+.settings-dialog input { width:100%; font-size:1rem; }
+.settings-dialog input:focus { outline:none!important; box-shadow:none!important; border:1px solid var(--app-accent)!important; }
+.settings-dialog button:focus-visible { outline:1px solid var(--app-accent); outline-offset:2px; }
+.rail.vv-island #btnResumeProject[hidden] { display:none!important; }
 body:not(.scripts-home) { background:var(--app-bg); color:var(--app-text); }
 /* One continuous perimeter, independent of navigation and open inspectors. */
 body:not(.scripts-home)::before {
@@ -46,7 +56,7 @@ body.scripts-home .workflow-stages { display:none; }
 body:not(.scripts-home) .stage {
   inset:calc(var(--shell-margin) + var(--editor-header-height)) var(--shell-margin)
     calc(var(--shell-margin) + var(--editor-transport-height)) calc(var(--shell-nav-width) + var(--shell-margin));
-  background:var(--app-surface); border:0; border-radius:0; padding:0; overflow:auto;
+  background:var(--app-surface); border:0; border-radius:0; padding:0; overflow:auto; overflow-anchor:none;
 }
 body:not(.scripts-home) .sheet {
   width:100%; max-width:var(--editor-document-width); margin:0;
@@ -121,6 +131,7 @@ body:not(.scripts-home) button:focus-visible { outline:1px solid var(--app-accen
   body:not(.scripts-home) .dw { box-shadow:-1rem 0 2rem color-mix(in oklab,var(--app-text) 8%,transparent); max-width:calc(100vw - var(--shell-nav-width) - var(--shell-margin) * 2); }
 }
 @media(max-width:640px) {
+  .settings-dialog .dw-hd .x { width:3rem; height:3rem; }
   body:not(.scripts-home) { --shell-margin:1rem; --shell-nav-width:3rem; --editor-header-height:7rem; }
   body:not(.scripts-home) .rail.vv-island { padding:1rem .5rem; }
   body:not(.scripts-home) .rail.vv-island .home-logo { width:2rem; height:2rem; margin:0 0 1.5rem; }

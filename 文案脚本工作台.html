@@ -1130,8 +1130,8 @@ body.scripts-home[data-home-view="import"] #importDialog .import-content {width:
   </div>
 </aside>
 
-<aside class="dw" id="dw-settings" style="--w:360px" aria-label="设置">
-  <div class="dw-hd"><span class="t">设置</span><button class="x" data-close aria-label="关闭">×</button></div>
+<dialog class="settings-dialog" id="dw-settings" aria-labelledby="settingsTitle">
+  <div class="dw-hd"><span class="t" id="settingsTitle">设置</span><button class="x" id="closeSettings" aria-label="关闭设置">×</button></div>
   <div class="dw-bd"><form id="storageSettings">
     <h3>存储</h3>
     <label for="draftRoot">草稿箱位置</label><div class="field"><input id="draftRoot" type="text" autocomplete="off" spellcheck="false" required></div>
@@ -1140,7 +1140,7 @@ body.scripts-home[data-home-view="import"] #importDialog .import-content {width:
     <p class="hint">未指定导出位置时使用这里。每次自动新建「时间＋随机标识」文件夹，不覆盖历史导出。</p>
     <p id="storageError" class="hint" role="alert"></p><button id="saveStorage" class="btn" type="submit">保存设置</button><p id="storageState" class="hint" role="status"></p>
   </form></div>
-</aside>
+</dialog>
 
 <div class="modal" id="modal">
   <div class="bd" data-close></div>
@@ -2526,6 +2526,9 @@ function renderSettings(){
     const input=$('#'+id);if(document.activeElement!==input)input.value=storagePreferences[key];
   }
 }
+function openSettings(){const dialog=$('#dw-settings');$('#storageError').textContent='';$('#storageState').textContent='';if(!dialog.open)dialog.showModal();loadStorageSettings().catch(e=>{$('#storageError').textContent=e.message;});}
+$('#closeSettings').onclick=()=>$('#dw-settings').close();
+$('#dw-settings').addEventListener('click',e=>{if(e.target!==e.currentTarget)return;const r=e.currentTarget.getBoundingClientRect();if(e.clientX<r.left||e.clientX>r.right||e.clientY<r.top||e.clientY>r.bottom)e.currentTarget.close();});
 $('#storageSettings').onsubmit=async e=>{
   e.preventDefault();const button=$('#saveStorage');button.disabled=true;$('#storageError').textContent='';$('#storageState').textContent='保存中…';
   try{const r=await fetch('/api/settings',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({projectRoot:$('#draftRoot').value,exportRoot:$('#defaultExportRoot').value})}),d=await r.json();if(!r.ok||!d.ok)throw Error(d.error||'设置保存失败');storagePreferences=d.settings;renderSettings();$('#storageState').textContent='已保存';}
@@ -2590,6 +2593,7 @@ function syncRail(k) {
   $$(".rit").forEach(r => { const active=!!k && r.dataset.open===k; r.classList.toggle("on",active); r.setAttribute("aria-expanded",String(active)); });
 }
 function openDrawer(k) {
+  if(k==='settings')return openSettings();
   if (!document.body.classList.contains('scripts-home')) syncWorkflowStage(stageForTool(k));
   closeAllDrawers();
   const el = document.getElementById(DW[k]); if (!el) return;
@@ -2654,6 +2658,7 @@ async function projectAt(dir,project) {
   const d=await requestApiAt('/api/project',dir,project?{project}:undefined);if(!d.ok)throw Error(d.error||'无法打开项目');return d;
 }
 async function preserveBeforeSwitch() {
+  if(capture||recordBusy)throw Error('录音或音频处理进行中，请完成后再切换项目');
   if(S.jobActive) throw Error("配音生成中，请完成后再切换稿件");
   if(!online) throw Error("服务未连接，先恢复连接再切换稿件");
   if(typeof activeScriptClosed!=="undefined"&&activeScriptClosed) {stopPlay();return;}
@@ -2680,8 +2685,11 @@ async function revealProjectFolder(item) {
   catch(e){toast("打开文件夹失败："+e.message,true);}
 }
 function resetWorkspaceView(){delete document.body.dataset.homeView;if($('#importDialog').open)$('#importDialog').close();}
-function showScriptEditor() {resetWorkspaceView();activeScriptClosed=false;document.body.classList.remove("scripts-home");$("#scriptsPage").hidden=true;$("#btnScripts").classList.remove("on");localStorage.setItem("script-editor-home-v1","false");}
-function showScriptsPage() {resetWorkspaceView();activeScriptClosed=true;closeAllDrawers();document.body.classList.add("scripts-home");$("#scriptsPage").hidden=false;$("#btnScripts").classList.add("on");$("#homeSearch").value=$("#scriptsSearch").value;localStorage.setItem("script-editor-home-v1","true");renderScriptsPage();}
+let workingProjectView=null;
+function syncResumeProject(){const b=$('#btnResumeProject');if(!b)return;const item=recentScripts().find(x=>x.projectId===S.project?.meta?.projectId);b.hidden=!document.body.classList.contains('scripts-home')||!S.dir||!S.project?.meta?.projectId||S.projectGone||!!item?.trashed||!!item?.hidden;b.title='返回：'+(S.project?.meta?.title||'当前项目');}
+function showScriptEditor() {resetWorkspaceView();activeScriptClosed=false;document.body.classList.remove("scripts-home");$("#scriptsPage").hidden=true;$("#btnScripts").classList.remove("on");localStorage.setItem("script-editor-home-v1","false");syncResumeProject();}
+function showScriptsPage() {if(!document.body.classList.contains('scripts-home'))workingProjectView={stage:workflowStage,scroll:$('#stage').scrollTop};resetWorkspaceView();activeScriptClosed=true;closeAllDrawers();document.body.classList.add("scripts-home");$("#scriptsPage").hidden=false;$("#btnScripts").classList.add("on");$("#homeSearch").value=$("#scriptsSearch").value;localStorage.setItem("script-editor-home-v1","true");renderScriptsPage();syncResumeProject();}
+async function resumeWorkingProject(){syncResumeProject();if($('#btnResumeProject').hidden)return;try{if(S.jobActive||importBusy||recordBusy||capture)throw Error('请先结束正在进行的操作');showScriptEditor();closeAllDrawers();syncWorkflowStage(workingProjectView?.stage||workflowStage);writeProjectRoute();requestAnimationFrame(()=>{$('#stage').scrollTop=workingProjectView?.scroll||0;});syncHomeSide();}catch(e){toast(e.message,true);}}
 async function showWorkspacePage(view,replace=false){if(view==='open')return returnToScripts();try{await preserveBeforeSwitch();showScriptsPage();document.body.dataset.homeView=view;if(view==='import')$('#importDialog').show();else openDrawer(view==='open'?'home':'settings');writeRoute('/'+view,replace);syncHomeSide();}catch(e){toast('无法切换页面：'+e.message,true);}}
 async function returnToScripts() {try {await preserveBeforeSwitch();showScriptsPage();writeProjectsRoute(showingTrash);await refreshLibrary(); }catch(e){toast("无法关闭稿件："+e.message,true);}}
 async function updateScriptRecord(dir,patch) {const records=recentScripts(),item=records.find(x=>x.dir===dir);if(!item)return;const updated={...item,...patch};try{await persistLibraryRecord(updated);Object.assign(item,patch);localStorage.setItem(RECENT_SCRIPTS_KEY,JSON.stringify(records));renderScriptsPage();}catch(e){toast(e.message,true);}}
@@ -2691,7 +2699,8 @@ function writeProjectsRoute(trash=false,replace=false) {const params=new URLSear
 function writeProjectRoute(panel="",replace=false) { if(document.body.classList.contains("scripts-home")) return;const id=S.project?.meta?.projectId;if(!id) return;const params=new URLSearchParams();if(workflowStage!=='text')params.set('stage',workflowStage);if(panel)params.set('panel',panel);writeRoute("/project/"+encodeURIComponent(id)+(params.size?"?"+params.toString():""),replace); }
 async function applyRoute() {
   const path=location.pathname,params=new URLSearchParams(location.search),match=path.match(/^\/project\/([a-f0-9]{32})$/i);
-  if(['/open','/import','/settings'].includes(path)){await showWorkspacePage(path.slice(1),true);return;}
+  if(path==='/settings'){showScriptsPage();writeProjectsRoute(false,true);openSettings();return;}
+  if(['/open','/import'].includes(path)){await showWorkspacePage(path.slice(1),true);return;}
   if(path==='/projects'||path==='/projects/trash'){showingTrash=path.endsWith('/trash');showScriptsPage();syncHomeSide();return;}
   if(!match)return;
   const id=match[1].toLowerCase(),current=S.project?.meta?.projectId;
@@ -2981,6 +2990,7 @@ document.addEventListener("pointerdown", () => { document.documentElement.datase
 document.addEventListener("keydown", e => {
   if (e.key === 'Tab') document.documentElement.dataset.vvInput = 'keyboard';
   if (e.key === "Escape") {
+    if ($('#dw-settings').open) return;
     if ($('.sort-popover').open||$('.date-filter')?.open) return;
     if (document.body.dataset.homeView) return returnToScripts();
     if ($$(".modal.show").length) return $$(".modal.show").forEach(m => m.classList.remove("show"));
@@ -3145,6 +3155,7 @@ const recordAction=document.createElement("button");recordAction.className="rit"
 recordAction.onclick=()=>$("#dw-record").classList.contains("open")?closeAllDrawers():openDrawer("record");
 function navGroup(label,buttons,extra=''){const group=document.createElement("div");group.className="nav-group "+extra;if(label){const heading=document.createElement("span");heading.className="nav-heading";heading.textContent=label;group.append(heading);}for(const button of buttons){button.removeAttribute("data-tip");const text=document.createElement("span");text.className="nav-label";text.textContent=button.getAttribute("aria-label");button.append(text);group.append(button);}return group;}
 const library=navGroup('',[$("#btnScripts"),trash]);
+const resumeAction=document.createElement('button');resumeAction.id='btnResumeProject';resumeAction.hidden=true;resumeAction.setAttribute('aria-label','返回当前项目');resumeAction.innerHTML='<svg aria-hidden="true" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M8 4L2 10l6 6M2 10h11a4 4 0 0 0 4-4"/></svg><span class="nav-label">返回当前项目</span>';resumeAction.onclick=resumeWorkingProject;library.prepend(resumeAction);
 library.querySelector("#btnScripts").setAttribute("aria-label","项目");library.querySelector("#btnScripts .nav-label").textContent="项目";
 // One SVG source for the application mark and browser favicon.
 const appLogoSvg='<svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" viewBox="0 0 32 32"><rect width="32" height="32" rx="8" fill="var(--app-accent)"/><text x="16" y="23" text-anchor="middle" fill="var(--app-on-accent)" font-family="Georgia,serif" font-size="21" font-weight="700">S.</text></svg>';
@@ -3304,7 +3315,7 @@ function syncSortMenu(){sortMenu.querySelectorAll('button').forEach(b=>b.setAttr
 for(const option of sortSelect.options){const b=document.createElement('button');b.type='button';b.textContent=option.textContent;b.dataset.value=option.value;b.setAttribute('role','menuitemradio');b.onclick=()=>{setProjectSort(option.value);$('.sort-popover').open=false;$('.sort-popover summary').focus();};sortMenu.append(b);}syncSortMenu();
 sortMenu.addEventListener('keydown',e=>{const buttons=Array.from(sortMenu.querySelectorAll('button')),index=buttons.indexOf(document.activeElement);if(['ArrowDown','ArrowUp','Home','End'].includes(e.key)){e.preventDefault();buttons[e.key==='Home'?0:e.key==='End'?buttons.length-1:(index+(e.key==='ArrowDown'?1:-1)+buttons.length)%buttons.length].focus();}});
 $('.sort-popover').addEventListener('toggle',()=>{const expanded=$('.sort-popover').open;$('.sort-popover summary').setAttribute('aria-expanded',String(expanded));if(expanded)sortMenu.querySelector('[aria-checked="true"]').focus();});
-for(const [selector,view] of [['#btnSettings','settings']])$(selector).addEventListener('click',e=>{e.stopImmediatePropagation();showWorkspacePage(view);},true);
+$('#btnSettings').addEventListener('click',e=>{e.stopImmediatePropagation();openSettings();},true);
 $$('#dw-home [data-close],#dw-settings [data-close]').forEach(b=>b.addEventListener('click',()=>{if(document.body.dataset.homeView)returnToScripts();}));
 document.addEventListener('click',e=>{if(!e.target.closest('.sort-popover'))$('.sort-popover').open=false;});
 document.addEventListener('click',e=>{if(!e.target.closest('.date-filter'))dateFilter.open=false;});

@@ -1,5 +1,7 @@
 # HANDOFF · 文案脚本工作台（v3）
 
+> **2026-09-18 设置与 Git 独立落位覆盖**：用户授权建库、推送并公开。应用已在原址建立独立 Git 根，远端 https://github.com/wampeeHuang/script-editor ，main 分支；父目录 D:/tools 的其他工具改动和历史不上传。设置改为模态表单，不再退出项目；列表/回收站/导入有“返回当前项目”，恢复阶段与阅读位置。详细合同见 docs/RECORDING-STAGE.md。此前关于“独立 Git 尚未执行、设置为独立页、未推送”的历史说明被本段覆盖。
+
 > **2026-09-18 界面与源码提交**：正式运行源码在本目录，入口 8781。当前编辑页顶部为文案/声音/交付阶段，工具随阶段显隐；正文与播放条共用内容底板，淡主题色页眉保留，完整外框四角 8px。章节为独立微色差卡片，章节号 32×32px、18px 数字，句序号 12px；导航旧阴影及句旁竖色带已移除。主题变量与 Logo/favicon 同源。浏览器 29 项回归通过，目录门禁/地图、7 项治理测试和项目删除隔离测试通过；详细合同见 docs/RECORDING-STAGE.md。本次 Git 仅包含应用源码、文档和测试，用户项目/音频/导出物/本地偏好及大批历史档案不入库，不推送。声音与镜头规划的新功能尚未实现，不以界面回归代表完整 MVP 验收。
 
 > **2026-09-18 开发目录整改覆盖说明**：当前人入口 README.md，Agent 入口 AGENTS.md，目录地图由 `checks/workspace.py` 生成；文档归入 docs/，活动验证为 `tests/smoke.py` 与 `tests/test_project_deletion.py`。108组原址移动、4786个文件在快照与移动后逐文件SHA-256核验一致，未删除历史文件或改变用户项目内容。完整恢复点 `F:/_migration-snapshot/script-editor/structure-before-20260918/`；映射与证据 `archive/structure-20260918/`。旧 `_runtime/solution-design/` 已整体移至 `archive/solution-design/`，其余历史试验/截图/补丁/夹具在 `archive/legacy-runtime/`；运行仓仅保留现用CosyVoice依赖与日志。下文的旧目录树和路径是历史记录，不作为当前目录导航。跨目录搬家及独立Git仓库尚未执行：目标工作区要求干净恢复点，现有D:/tools工作树有未提交改动，本轮不擅自提交。详见 docs/WORKSPACE-STRUCTURE.md。
