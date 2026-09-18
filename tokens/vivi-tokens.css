@@ -1,0 +1,99 @@
+/* Generated from vivi-tokens.json by scripts/build-tokens.js. Do not edit here. */
+@font-face {
+  font-family: "Noto Serif SC";
+  src: url("../media/fonts/NotoSerifSC-VF.ttf") format("truetype");
+  font-style: normal;
+  font-weight: 200 900;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Noto Sans SC";
+  src: url("../media/fonts/NotoSansSC-VF.ttf") format("truetype");
+  font-style: normal;
+  font-weight: 100 900;
+  font-display: swap;
+}
+@font-face {
+  font-family: "FontQu Smile";
+  src: url("../media/fonts/FontQuSmile.ttf") format("truetype");
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Instrument Sans";
+  src: url("../media/fonts/InstrumentSans-Regular.ttf") format("truetype");
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Instrument Sans";
+  src: url("../media/fonts/InstrumentSans-Bold.ttf") format("truetype");
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Cascadia Mono";
+  src: url("../media/fonts/CascadiaMono.ttf") format("truetype");
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Lusitana";
+  src: url("../media/fonts/Lusitana-Regular.ttf") format("truetype");
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Lusitana";
+  src: url("../media/fonts/Lusitana-Bold.ttf") format("truetype");
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+}
+:root {
+  --green: #6B9A3A;
+  --green-deep: #3E571C;
+  --yellow: #D9E26B;
+  --yellow-soft: #E5ECA1;
+  --cream: #F9FBF9;
+  --cream-dark: #EEF4EF;
+  --ink: #262B27;
+  --ink-light: #6B7470;
+  --ink-faint: #9AA39E;
+  --white: #FFFFFF;
+  --line: #DDE4B8;
+  --line-subtle: #E3ECE6;
+  --status-on: #1A8A3F;
+  --status-warn: #C7902B;
+  --status-error: #C0392B;
+  --cream-rgb: 249, 251, 249;
+  --yellow-rgb: 217, 226, 107;
+  --ink-rgb: 38, 43, 39;
+  --font-head: "Noto Serif SC", SimSun, serif;
+  --font-body: "Instrument Sans", "Noto Sans SC", "Microsoft YaHei", "PingFang SC", sans-serif;
+  --font-editorial: "Lusitana", "Noto Serif SC", SimSun, serif;
+  --font-code: "Cascadia Mono", ui-monospace, "Cascadia Code", "SF Mono", monospace;
+  --font-hand: "FontQu Smile", "Noto Sans SC", "Microsoft YaHei", sans-serif;
+  --text-xs: 12px;
+  --text-sm: 14px;
+  --text-base: 16px;
+  --text-md: 18px;
+  --text-lg: 20px;
+  --text-xl: 28px;
+  --content-max: 1800px;
+  --radius-xs: 4px;
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-pill: 999px;
+  --shadow-card: 0 1px 2px rgba(var(--ink-rgb), .06);
+  --ease-standard: cubic-bezier(0.22, 0.61, 0.36, 1);
+  --ease-in-out: cubic-bezier(0.45, 0, 0.55, 1);
+  --dur-fast: 140ms;
+  --dur-base: 240ms;
+  --dur-slow: 420ms;
+}

@@ -1,0 +1,62 @@
+// Run with playwright-cli run-code --filename=tests/ui_workflow.js against the live project page.
+async (page) => {
+  const passed = [], errors = [];
+  page.on('pageerror', error => errors.push(error.message));
+  const check = (name, ok) => { if (!ok) throw Error(name); passed.push(name); };
+  await page.setViewportSize({ width: 1440, height: 960 });
+  await page.getByRole('button', { name: '文案', exact: true }).click();
+  const textX = await page.locator('.txt').first().evaluate(e => e.getBoundingClientRect().x);
+  check('rail has no divider shadow', await page.locator('.rail').evaluate(e => getComputedStyle(e).boxShadow === 'none'));
+  check('project content has one background', await page.evaluate(() => ['.stage','.tp','.dw'].map(s => getComputedStyle(document.querySelector(s)).backgroundColor).every((v, i, a) => v === a[0])));
+  check('project retains tinted header', await page.evaluate(() => getComputedStyle(document.querySelector('.top')).backgroundColor !== getComputedStyle(document.querySelector('.stage')).backgroundColor));
+  check('project perimeter independently closed', await page.evaluate(() => { const s = getComputedStyle(document.body,'::before'); return s.borderTopWidth === '1px' && s.borderBottomWidth === '1px' && s.borderLeftWidth === '1px' && s.borderRightWidth === '1px' && s.borderTopLeftRadius === '8px' && s.borderBottomRightRadius === '8px' && s.pointerEvents === 'none'; }));
+  check('chapter surface distinct from frame', await page.evaluate(() => getComputedStyle(document.querySelector('.seg')).backgroundColor !== getComputedStyle(document.querySelector('.stage')).backgroundColor));
+  check('chapter badges have logo-like hierarchy', await page.locator('.chapter-handle').evaluateAll(es => es.every(e => { const s = getComputedStyle(e), n = getComputedStyle(document.querySelector('.ln')); return e.offsetWidth === 32 && e.offsetHeight === 32 && s.fontSize === '18px' && n.fontSize === '12px' && s.backgroundColor !== 'rgba(0, 0, 0, 0)'; })));
+  check('sentences have no vertical bars', await page.locator('.line').evaluateAll(es => es.every(e => getComputedStyle(e, '::before').display === 'none')));
+  check('chapters have individual cards', await page.locator('.seg').evaluateAll(es => es.length > 0 && es.every(e => { const s = getComputedStyle(e); return s.borderTopWidth === '1px' && s.borderTopLeftRadius === '8px'; })));
+  check('sentence numbers separate from text', await page.locator('.line').evaluateAll(es => es.every(e => e.querySelector('.txt').getBoundingClientRect().left - e.querySelector('.ln').getBoundingClientRect().right >= 15)));
+  check('chapter actions stay inside cards', await page.locator('.seg').evaluateAll(es => es.every(e => { const c = e.getBoundingClientRect(), d = e.querySelector('[data-act=segDel]').getBoundingClientRect(); return d.width === 32 && d.right < c.right && d.top > c.top; })));
+  check('chapter insertion is explicitly labelled', await page.locator('.chapter-insert').evaluateAll(es => es.length > 0 && es.every(e => e.getAttribute('aria-label').includes('章后添加章节'))));
+  check('text hides recording', !(await page.getByRole('button', { name: '录音', exact: true }).isVisible()));
+  await page.getByRole('button', { name: '声音', exact: true }).click();
+  check('audio shows recording', await page.getByRole('button', { name: '录音', exact: true }).isVisible());
+  await page.getByRole('button', { name: '文案', exact: true }).click();
+  await page.goBack();
+  await page.waitForFunction(() => document.body.dataset.processingStage === 'audio');
+  check('back restores audio stage', true);
+  await page.goForward();
+  await page.waitForFunction(() => document.body.dataset.processingStage === 'text');
+  check('forward restores text stage', true);
+  await page.getByRole('button', { name: '声音', exact: true }).click();
+  await page.getByRole('button', { name: '录音', exact: true }).click();
+  check('record panel 384', await page.locator('#dw-record').evaluate(e => e.getBoundingClientRect().width === 384));
+  check('document left stable', await page.locator('.txt').first().evaluate(e => e.getBoundingClientRect().x) === textX);
+  await page.locator('#dw-record [data-close]').click();
+  await page.getByRole('button', { name: '配音', exact: true }).click();
+  check('voice panel 384', await page.locator('#dw-voice').evaluate(e => e.getBoundingClientRect().width === 384));
+  await page.getByRole('button', { name: '文案', exact: true }).click();
+  check('stage change closes panel', await page.locator('.dw.open').count() === 0);
+  await page.getByRole('button', { name: '交付', exact: true }).click();
+  check('delivery opens export', await page.locator('#dw-export').evaluate(e => e.classList.contains('open')));
+  await page.reload();
+  await page.waitForFunction(() => document.body.dataset.processingStage === 'delivery' && document.querySelector('#dw-export.open'));
+  check('delivery reload restores stage', true);
+  await page.getByRole('button', { name: '文案', exact: true }).click();
+  await page.locator('.txt').first().click();
+  check('single focus border', await page.locator('.txt').first().evaluate(e => { const s = getComputedStyle(e); return s.outlineStyle === 'none' && s.boxShadow === 'none' && s.borderTopWidth === '1px'; }));
+  const before = await page.locator('.workflow-stages button[aria-pressed=true]').evaluate(e => getComputedStyle(e).backgroundColor);
+  try {
+    await page.evaluate(() => document.documentElement.style.setProperty('--app-accent', 'oklch(.45 .10 150)'));
+    check('theme changes stage', before !== await page.locator('.workflow-stages button[aria-pressed=true]').evaluate(e => getComputedStyle(e).backgroundColor));
+    check('theme changes logo', await page.locator('.home-logo rect').evaluate(e => getComputedStyle(e).fill === 'oklch(0.45 0.1 150)'));
+    check('theme changes favicon', decodeURIComponent(await page.locator('#appFavicon').getAttribute('href')).includes('oklch(.45 .10 150)'));
+  } finally { await page.evaluate(() => document.documentElement.style.removeProperty('--app-accent')); }
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.waitForFunction(() => [...document.querySelectorAll('.txt')].every(e => e.scrollHeight <= e.clientHeight + 1));
+  check('mobile text height fits', true);
+  check('mobile chapters scroll', await page.locator('#zones').evaluate(e => e.scrollWidth > e.clientWidth && getComputedStyle(e).overflowX === 'auto'));
+  await page.setViewportSize({ width: 1440, height: 960 });
+  check('logo 32 square aligned', await page.locator('.home-logo svg').evaluate(e => { const r = e.getBoundingClientRect(); return r.width === 32 && r.height === 32 && r.y === 32; }));
+  check('no runtime errors', errors.length === 0);
+  return { passed, errors };
+}

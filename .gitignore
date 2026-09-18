@@ -1,0 +1,15 @@
+# Runtime outputs; never the only copy of lasting evidence.
+_runtime/
+.playwright-cli/
+.workbuddy/
+__pycache__/
+*.py[cod]
+# User drafts, local preferences and exported deliveries are not source code.
+projects/
+exports/
+settings.json
+default-project.txt
+.env
+.env.*
+!.env.example
+# Historical evidence is preserved; only generated dependencies are excluded.

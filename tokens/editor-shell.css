@@ -1,0 +1,149 @@
+/* Project shell: geometry is parameterized independently from its theme. */
+body:not(.scripts-home) { background:var(--app-bg); color:var(--app-text); }
+/* One continuous perimeter, independent of navigation and open inspectors. */
+body:not(.scripts-home)::before {
+  content:""; position:fixed;
+  inset:var(--shell-margin) var(--shell-margin) var(--shell-margin) calc(var(--shell-nav-width) + var(--shell-margin));
+  border:1px solid var(--app-border); border-radius:var(--shell-radius);
+  pointer-events:none; z-index:80;
+}
+body:not(.scripts-home) .rail.vv-island {
+  width:var(--shell-nav-width); padding:var(--shell-margin) 1rem 1rem;
+  background:var(--app-bg); gap:0; box-shadow:none;
+}
+body:not(.scripts-home) .rail.vv-island .home-logo { width:2rem; height:2rem; min-height:2rem; max-height:2rem; flex:0 0 2rem; margin:0 .5rem 2rem; padding:0; display:block; }
+body:not(.scripts-home) .home-logo svg { width:100%; height:100%; }
+body:not(.scripts-home) .nav-group { gap:var(--layout-unit); margin-bottom:1rem; }
+body:not(.scripts-home) .nav-history { flex-direction:column; }
+body:not(.scripts-home) .rail.vv-island button {
+  width:var(--shell-nav-item-width); min-height:2rem; height:2rem;
+  padding:0 .5rem; font-size:.8125rem; border-radius:var(--shell-radius);
+}
+body:not(.scripts-home) .rail button:hover { background:var(--app-hover); }
+body:not(.scripts-home) .rail button.on { background:var(--app-selected); color:var(--app-accent-strong); }
+body:not(.scripts-home) .rail button[hidden] { display:none!important; }
+body:not(.scripts-home) .top {
+  inset:var(--shell-margin) var(--shell-margin) auto calc(var(--shell-nav-width) + var(--shell-margin));
+  height:var(--editor-header-height); padding:1rem 2rem; background:var(--app-accent-pale);
+  border:0; border-radius:var(--shell-radius) var(--shell-radius) 0 0;
+  display:grid; grid-template-columns:minmax(0,1fr) auto; grid-template-rows:2.5rem 2rem;
+  gap:var(--layout-unit) 1rem; align-items:center;
+}
+body:not(.scripts-home) .top .script-title {
+  position:static; transform:none; width:100%; max-width:none; height:2.5rem;
+  text-align:left; font:500 1.5rem var(--font-head);
+  border:1px solid transparent; border-radius:var(--shell-radius); padding:0;
+}
+body:not(.scripts-home) .top .savest { font-size:.75rem; }
+.workflow-stages { grid-row:2; grid-column:1 / -1; display:flex; gap:var(--layout-unit); }
+.workflow-stages button {
+  min-width:5rem; height:2rem; padding:0 1rem; font-size:.8125rem;
+  color:var(--app-text-soft); border:1px solid transparent; border-radius:var(--shell-radius);
+}
+.workflow-stages button:hover { background:var(--app-hover); }
+.workflow-stages button[aria-pressed="true"] { background:var(--app-accent); color:var(--app-on-accent); }
+body.scripts-home .workflow-stages { display:none; }
+body:not(.scripts-home) .stage {
+  inset:calc(var(--shell-margin) + var(--editor-header-height)) var(--shell-margin)
+    calc(var(--shell-margin) + var(--editor-transport-height)) calc(var(--shell-nav-width) + var(--shell-margin));
+  background:var(--app-surface); border:0; border-radius:0; padding:0; overflow:auto;
+}
+body:not(.scripts-home) .sheet {
+  width:100%; max-width:var(--editor-document-width); margin:0;
+  padding:2rem; padding-bottom:3rem;
+}
+body:not(.scripts-home)[data-inspector] .sheet { width:calc(100% - var(--editor-inspector-width)); }
+body:not(.scripts-home) .seg {
+  border:1px solid var(--app-border); border-radius:var(--shell-radius);
+  background:var(--app-bg); padding:1.5rem; box-shadow:none;
+}
+body:not(.scripts-home) .seg-hd { display:grid; grid-template-columns:2rem minmax(0,1fr) 2rem; gap:1rem; align-items:center; margin:0; }
+body:not(.scripts-home) .chapter-handle { width:2rem; min-width:2rem; height:2rem; border-radius:var(--shell-radius); font:700 1.125rem/1 var(--font-head); color:var(--app-on-accent); background:var(--app-accent); }
+body:not(.scripts-home) .chapter-handle::after { display:none; }
+body:not(.scripts-home) .chapter-tools { padding:0 0 1rem 3rem; margin:0 0 1rem; min-height:0; border-bottom:1px solid var(--app-border); }
+body:not(.scripts-home) .seg-hd .del { display:flex; align-items:center; justify-content:center; width:2rem; height:2rem; border-radius:var(--shell-radius); color:var(--app-text-soft); }
+body:not(.scripts-home) .seg-hd .del svg { width:1rem; height:1rem; }
+body:not(.scripts-home) .seg-hd .del:hover { color:var(--status-error); background:var(--app-hover); }
+body:not(.scripts-home) .line::before { display:none; }
+body:not(.scripts-home) .line { gap:1rem; padding:.25rem 0; }
+body:not(.scripts-home) .line .ln { width:2rem; min-width:2rem; flex:0 0 2rem; padding:.25rem 0 0; text-align:center; color:var(--app-text-soft); }
+body:not(.scripts-home) .ln i { font-style:normal; }
+body:not(.scripts-home) .line.on .ln { color:var(--app-accent-strong); font-weight:600; }
+body:not(.scripts-home) .line.u-break { margin-top:0; }
+body:not(.scripts-home) .chapter-insert { display:flex; align-items:center; justify-content:center; gap:.5rem; width:100%; height:2rem; margin:1rem 0; padding:0 1rem; font-size:.75rem; color:var(--app-text-soft); border:1px solid transparent; border-radius:var(--shell-radius); }
+body:not(.scripts-home) .chapter-insert svg { width:1rem; height:1rem; }
+body:not(.scripts-home) .chapter-insert:hover { color:var(--app-accent-strong); border-color:var(--app-border); background:var(--app-hover); }
+body:not(.scripts-home) .seg-hd .ttl { font-size:1.125rem; line-height:1.5; }
+body:not(.scripts-home) .chapter-tools .meta,
+body:not(.scripts-home) .chapter-tools .del,
+body:not(.scripts-home) .seg-add { font-size:.75rem; }
+body:not(.scripts-home) .chapter-tools .del { min-height:2rem; }
+body:not(.scripts-home) .line { min-height:2rem; }
+body:not(.scripts-home) .line .txt { font-size:1rem; line-height:1.5; border:1px solid transparent; }
+body:not(.scripts-home) .ln { font-size:.75rem; }
+body:not(.scripts-home) .dw {
+  inset:calc(var(--shell-margin) + var(--editor-header-height)) var(--shell-margin)
+    calc(var(--shell-margin) + var(--editor-transport-height)) auto;
+  width:var(--editor-inspector-width)!important; border:0; border-left:1px solid var(--app-border);
+  border-radius:0; background:var(--app-surface);
+}
+body:not(.scripts-home) .dw-hd { min-height:3rem; height:3rem; padding:0 1.5rem; }
+body:not(.scripts-home) .dw-hd .t { font-size:1rem; }
+body:not(.scripts-home) .dw-bd { padding:1.5rem; font-size:.875rem; overscroll-behavior:contain; }
+body:not(.scripts-home) .dw h3 { font-size:.875rem; }
+body:not(.scripts-home) .dw .hint { font-size:.75rem; }
+body:not(.scripts-home) .dw .btn { height:2rem; font-size:.8125rem; }
+body:not(.scripts-home) .dw .btn.p { min-height:2.5rem; }
+body:not(.scripts-home) .record-script { font-size:1rem; line-height:1.5; }
+body:not(.scripts-home) .tp {
+  inset:auto var(--shell-margin) var(--shell-margin) calc(var(--shell-nav-width) + var(--shell-margin));
+  height:var(--editor-transport-height); padding:1rem 2rem; gap:1rem;
+  background:var(--app-surface); border:0; border-top:1px solid var(--app-border);
+  border-radius:0 0 var(--shell-radius) var(--shell-radius);
+}
+body:not(.scripts-home) .chapter-links { height:2rem; min-height:2rem; }
+body:not(.scripts-home) .tp .chapter-link { height:2rem!important; background:var(--app-hover)!important; color:var(--app-text); }
+body:not(.scripts-home) .tp .chapter-link.on { background:var(--app-selected)!important; }
+body:not(.scripts-home) .tp .chapter-link .name,
+body:not(.scripts-home) .tp .time { font-size:.75rem; }
+.ph-wrap { background:var(--app-preview-bg); border-radius:var(--shell-radius); }
+.sub { color:var(--app-preview-ink); }
+.lamp.no-selection { padding:.125rem .5rem; border:0; border-radius:var(--shell-radius); background:var(--app-hover); color:var(--app-text-soft); }
+body:not(.scripts-home) input:focus,
+body:not(.scripts-home) textarea:focus,
+body:not(.scripts-home) .seg-hd .ttl:focus,
+body:not(.scripts-home) .script-title:focus {
+  outline:none!important; box-shadow:none!important; border:1px solid var(--app-accent)!important;
+}
+body:not(.scripts-home) button:focus-visible { outline:1px solid var(--app-accent); outline-offset:2px; }
+@media(max-width:1100px) {
+  body:not(.scripts-home)[data-inspector] .sheet { width:100%; }
+  body:not(.scripts-home) .dw { box-shadow:-1rem 0 2rem color-mix(in oklab,var(--app-text) 8%,transparent); max-width:calc(100vw - var(--shell-nav-width) - var(--shell-margin) * 2); }
+}
+@media(max-width:640px) {
+  body:not(.scripts-home) { --shell-margin:1rem; --shell-nav-width:3rem; --editor-header-height:7rem; }
+  body:not(.scripts-home) .rail.vv-island { padding:1rem .5rem; }
+  body:not(.scripts-home) .rail.vv-island .home-logo { width:2rem; height:2rem; margin:0 0 1.5rem; }
+  body:not(.scripts-home) .rail.vv-island button { width:2rem; min-height:2.75rem; height:2.75rem; padding:0; justify-content:center; }
+  body:not(.scripts-home) .rail .nav-label { display:none; }
+  body:not(.scripts-home) .nav-group { gap:var(--layout-unit); }
+  body:not(.scripts-home) .nav-history { flex-direction:column; }
+  body:not(.scripts-home) .top { padding:1rem; gap:var(--layout-unit); }
+  body:not(.scripts-home) .top .script-title { font-size:1.25rem; }
+  .workflow-stages button { min-width:0; flex:1; padding:0 .5rem; }
+  body:not(.scripts-home) .sheet { padding:1.5rem 1rem; }
+  body:not(.scripts-home) .seg { padding:1rem; }
+  body:not(.scripts-home) .seg-hd { grid-template-columns:2rem minmax(0,1fr) 2.75rem; gap:.5rem; }
+  body:not(.scripts-home) .seg-hd .del { width:2.75rem; height:2.75rem; }
+  body:not(.scripts-home) .chapter-tools { padding-left:2.5rem; }
+  body:not(.scripts-home) .line { gap:.5rem; }
+  body:not(.scripts-home) .line .ln { width:1.5rem; min-width:1.5rem; flex-basis:1.5rem; }
+  body:not(.scripts-home) .chapter-insert { min-height:2.75rem; }
+  body:not(.scripts-home) .dw { width:calc(100vw - var(--shell-nav-width) - var(--shell-margin) * 2)!important; max-width:none; }
+  body:not(.scripts-home) .dw-bd { padding:1rem; }
+  body:not(.scripts-home) .tp { padding:.5rem; gap:.5rem; }
+  body:not(.scripts-home) .chapter-links { position:relative; inset:auto; display:flex; gap:.5rem; overflow-x:auto; }
+  body:not(.scripts-home) .chapter-link { position:relative; left:auto!important; width:auto!important; flex:none; min-width:6rem; max-width:10rem; padding:0 .5rem; }
+  body:not(.scripts-home) .tp .chapter-link .num { display:none; }
+  body:not(.scripts-home) .tp .time { font-size:.6875rem; }
+}

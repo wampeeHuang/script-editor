@@ -1,0 +1,40 @@
+/* Application theme source. Components use semantic aliases, never brand literals. */
+:root {
+  --app-bg: oklch(.971 .006 75);
+  --app-surface: oklch(.99 .002 75);
+  --app-text: oklch(.27 .018 310);
+  --app-text-soft: oklch(.52 .017 310);
+  --app-text-faint: oklch(.67 .012 310);
+  --app-border: oklch(.9 .01 75);
+  --app-accent: oklch(.45 .12 330);
+  --app-accent-strong: color-mix(in oklab, var(--app-accent) 80%, black);
+  --app-accent-pale: color-mix(in oklab, var(--app-accent) 10%, var(--app-surface));
+  --app-hover: color-mix(in oklab, var(--app-accent) 7%, var(--app-bg));
+  --app-selected: color-mix(in oklab, var(--app-accent) 13%, var(--app-bg));
+  --app-on-accent: white;
+  --app-preview-bg: oklch(.24 .008 150);
+  --app-preview-ink: white;
+  --home-bg: var(--app-bg); --home-surface: var(--app-surface);
+  --home-hover: var(--app-hover); --home-selected: var(--app-selected);
+  --home-ink: var(--app-text); --home-ink-soft: var(--app-text-soft);
+  --home-ink-faint: var(--app-text-faint); --home-line: var(--app-border);
+  --home-accent: var(--app-accent); --home-accent-deep: var(--app-accent-strong);
+  --home-accent-pale: var(--app-accent-pale);
+  /* Compatibility aliases for the existing Vivi components. */
+  --cream: var(--app-bg); --cream-dark: var(--app-accent-pale);
+  --white: var(--app-surface); --ink: var(--app-text); --ink-mid: var(--app-text-soft);
+  --ink-light: var(--app-text-soft); --ink-faint: var(--app-text-faint);
+  --green: var(--app-accent); --green-deep: var(--app-accent-strong);
+  --green-soft: var(--app-accent-pale); --line: var(--app-border);
+  --line-subtle: var(--app-border); --rule: var(--app-border);
+  --rule-strong: var(--app-border);
+  --layout-unit: .5rem;
+  --shell-margin: calc(var(--layout-unit) * 4);
+  --shell-nav-width: calc(var(--layout-unit) * 18);
+  --shell-nav-item-width: calc(var(--layout-unit) * 16);
+  --shell-radius: var(--layout-unit);
+  --editor-header-height: calc(var(--layout-unit) * 14);
+  --editor-transport-height: calc(var(--layout-unit) * 12);
+  --editor-inspector-width: calc(var(--layout-unit) * 48);
+  --editor-document-width: calc(var(--layout-unit) * 100);
+}

@@ -1,0 +1,518 @@
+<!DOCTYPE html>
+<!-- ds-template:panel vivi (script-editor 三阶段工作台 · 当前交付阶段一「文案」；壳源自 templates/scaffolds/template-panel.html) -->
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>文案脚本工作台 · 文案</title>
+<link rel="stylesheet" href="tokens/vivi-tokens.css">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: var(--font-body); font-size: var(--text-base);
+    background: var(--cream); color: var(--ink); min-height: 100vh;
+  }
+  ::selection { background: var(--yellow); color: var(--ink); }
+  button { font-family: inherit; }
+
+  /* ── 侧栏：固定 64px 纯图标，悬停侧气泡出功能名 ── */
+  .sidebar {
+    position: fixed; inset: 0 auto 0 0; width: 64px; z-index: 20;
+    background: var(--cream); border-right: 1px solid var(--line);
+    display: flex; flex-direction: column;
+  }
+  .s-logo {
+    padding: 14px 0; border-bottom: 1px solid var(--line);
+    display: flex; align-items: center; justify-content: center;
+  }
+  .s-logo svg { width: 36px; height: 36px; flex-shrink: 0; }
+  .s-nav { padding: 14px 10px; display: flex; flex-direction: column; gap: 6px; flex: 1; overflow: visible; }
+  .s-item {
+    display: flex; align-items: center; justify-content: center; width: 100%;
+    padding: 10px 0; border: 0; border-radius: var(--radius-md);
+    background: transparent; color: var(--ink-light); cursor: pointer;
+    transition: background .12s;
+  }
+  .s-item:hover { background: var(--cream-dark); }
+  .s-item.active { background: var(--yellow-soft); color: var(--green-deep); }
+  .s-item.disabled { opacity: .45; cursor: default; }
+  .s-item.disabled:hover { background: transparent; }
+  .s-item .ico { width: 20px; height: 20px; display: flex; align-items: center; justify-content: center; }
+  .s-item .ico svg { width: 20px; height: 20px; display: block; }
+  .s-item[data-tip]:hover::after, .s-logo[data-tip]:hover::after {
+    content: attr(data-tip); position: absolute; left: calc(100% + 10px); top: 50%;
+    bottom: auto; transform: translateY(-50%); background: var(--green-deep); color: var(--cream);
+    font-size: 13px; padding: 5px 12px; border-radius: var(--radius-xs);
+    white-space: nowrap; z-index: 40; pointer-events: none;
+  }
+
+  /* ── 主区 ── */
+  .main { margin-left: 64px; min-width: 0; }
+
+  /* hero：绿带封面（源自 manual 模式），定高 128px */
+  .hero {
+    position: relative; overflow: hidden; background: var(--green);
+    height: 128px; display: flex; align-items: center;
+    padding: 0 clamp(20px, 4vw, 56px);
+  }
+  .hero::before {
+    content: ""; position: absolute; inset: 0; opacity: .5; pointer-events: none;
+    background-image:
+      linear-gradient(to right, rgba(var(--cream-rgb), .09) 1px, transparent 1px),
+      linear-gradient(to bottom, rgba(var(--cream-rgb), .09) 1px, transparent 1px);
+    background-size: calc(var(--grid-unit) * 4) calc(var(--grid-unit) * 4);
+  }
+  .hero-in { position: relative; z-index: 1; max-width: var(--content-max); width: 100%; }
+  .hero .eyebrow {
+    font-size: var(--text-xs); letter-spacing: .14em; color: var(--yellow);
+    margin-bottom: 4px; font-family: var(--font-editorial); text-transform: uppercase;
+  }
+  .hero h1 {
+    font-family: var(--font-head); font-weight: 700;
+    font-size: 26px; color: var(--cream); line-height: 1.2;
+  }
+  .hero .lead {
+    margin-top: 6px; font-size: var(--text-sm); color: rgba(var(--cream-rgb), .82); line-height: 1.6;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+
+  /* 工具栏 */
+  .toolbar {
+    position: sticky; top: 0; z-index: 10;
+    background: var(--cream); border-bottom: 1px solid var(--line);
+    padding: 10px clamp(16px, 2.5vw, 32px);
+    display: flex; gap: 8px; flex-wrap: wrap; align-items: center;
+  }
+  .main-pad { padding: 18px clamp(16px, 2.5vw, 32px) 90px; max-width: var(--content-max); }
+
+  button.tb {
+    font-size: var(--text-sm); padding: 7px 14px; cursor: pointer;
+    border: 1px solid var(--line); border-radius: var(--radius-sm);
+    background: var(--white); color: var(--ink);
+    transition: border-color var(--dur-fast) var(--ease-standard), background var(--dur-fast) var(--ease-standard);
+  }
+  button.tb:hover { border-color: var(--green); background: var(--cream-dark); }
+  button.tb:disabled { opacity: .35; cursor: default; border-color: var(--line); background: var(--white); }
+  button.tb.primary { background: var(--green); border-color: var(--green); color: var(--white); }
+  button.tb.primary:hover { background: var(--green-deep); border-color: var(--green-deep); }
+  .tb-sep { width: 1px; height: 20px; background: var(--line); margin: 0 2px; }
+
+  /* 悬停提示：操作说明不再写死页面 */
+  [data-tip] { position: relative; }
+  [data-tip]:hover::after {
+    content: attr(data-tip); position: absolute; bottom: calc(100% + 8px); left: 50%;
+    transform: translateX(-50%); background: var(--ink); color: var(--cream);
+    font-size: 12px; line-height: 1.5; white-space: pre-line; width: max-content; max-width: 340px;
+    padding: 8px 12px; border-radius: var(--radius-xs); z-index: 50; pointer-events: none;
+    font-family: var(--font-body);
+  }
+
+  /* 编辑区：一段话，换行即分句 */
+  .editor-card {
+    border: 1px solid var(--line); border-radius: var(--radius-sm); background: var(--white);
+  }
+  textarea.editor {
+    display: block; width: 100%; min-height: 54vh; resize: vertical; outline: none; border: 0;
+    font-family: var(--font-body); font-size: var(--text-sm); line-height: 2;
+    padding: 16px 18px; color: var(--ink); background: transparent;
+  }
+  textarea.editor::placeholder { color: var(--ink-faint); }
+  textarea.editor:focus { box-shadow: inset 0 0 0 2px var(--green); border-radius: var(--radius-sm); }
+
+  .actions-row { display: flex; gap: 10px; align-items: center; margin-top: 14px; flex-wrap: wrap; }
+  .actions-row .hint { margin-left: auto; font-size: var(--text-xs); color: var(--ink-faint); }
+
+  /* ── 双屏字幕预览 ── */
+  .workbench { display: flex; gap: 18px; align-items: flex-start; }
+  .editor-col { flex: 1; min-width: 0; }
+  .pv-col { width: 300px; flex-shrink: 0; position: sticky; top: 72px; display: flex; flex-direction: column; gap: 14px; }
+  .pv-card { border: 1px solid var(--line); border-radius: var(--radius-sm); background: var(--white); padding: 12px; }
+  .pv-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 10px; }
+  .pv-title { font-size: var(--text-xs); color: var(--ink-light); letter-spacing: .04em; }
+  .lamp { font-family: var(--font-code); font-size: 12px; padding: 2px 9px; border-radius: var(--radius-pill); white-space: nowrap; }
+  .lamp.ok { background: rgba(26, 138, 63, .12); color: var(--status-on); }
+  .lamp.over { background: rgba(192, 57, 43, .14); color: var(--status-error); }
+  .lamp.empty { background: var(--cream-dark); color: var(--ink-faint); }
+
+  button.phone {
+    position: relative; display: block; width: 100%; padding: 0; border: 0; cursor: zoom-in;
+    background: var(--ink); border-radius: 10px; overflow: hidden; container-type: size;
+    box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .06);
+  }
+  button.phone.portrait { aspect-ratio: 9 / 16; }
+  button.phone.landscape { aspect-ratio: 16 / 9; }
+  .sub {
+    position: absolute; left: 6%; right: 6%; color: var(--white); text-align: center;
+    line-height: 1.4; white-space: pre-wrap; word-break: break-all; font-weight: 700;
+  }
+  .sub.stroke { -webkit-text-stroke: .45cqh #000; paint-order: stroke fill; }
+  .sub.bar { background: rgba(0, 0, 0, .55); border-radius: .8cqh; padding: .5cqh 1.2cqh; box-decoration-break: clone; }
+
+  .pv-ctl { margin-top: 10px; display: flex; flex-direction: column; gap: 7px; }
+  .pv-row { display: flex; align-items: center; gap: 8px; font-size: var(--text-xs); color: var(--ink-light); }
+  .pv-row .lab { width: 30px; flex-shrink: 0; }
+  .pv-row input[type="range"] { flex: 1; accent-color: var(--green); height: 14px; min-width: 0; }
+  .pv-row .val { width: 46px; text-align: right; font-family: var(--font-code); font-size: 11px; color: var(--ink); flex-shrink: 0; }
+  .pv-row select {
+    flex: 1; min-width: 0; font-family: inherit; font-size: var(--text-xs); color: var(--ink);
+    border: 1px solid var(--line); border-radius: var(--radius-xs); background: var(--white); padding: 3px 4px;
+  }
+  .pv-row .tog { display: flex; align-items: center; gap: 4px; cursor: pointer; }
+  .pv-row input[type="checkbox"] { accent-color: var(--green); margin: 0; }
+
+  .zoom-modal { position: fixed; inset: 0; z-index: 70; display: none; align-items: center; justify-content: center; background: rgba(var(--ink-rgb), .88); cursor: zoom-out; }
+  .zoom-modal.show { display: flex; }
+  .zoom-phone { position: relative; background: var(--ink); border-radius: 14px; overflow: hidden; container-type: size; box-shadow: 0 18px 60px rgba(0, 0, 0, .45); }
+  .zoom-tip { position: fixed; bottom: 22px; left: 50%; transform: translateX(-50%); color: var(--cream); font-size: var(--text-xs); opacity: .75; pointer-events: none; }
+
+  @media (max-width: 1080px) {
+    .workbench { flex-direction: column; }
+    .pv-col { width: 100%; position: static; flex-direction: row; flex-wrap: wrap; }
+    .pv-card { flex: 1; min-width: 280px; }
+  }
+
+  /* 弹窗 */
+  .vv-modal { position: fixed; inset: 0; z-index: 60; display: none; }
+  .vv-modal.show { display: block; }
+  .vv-modal__backdrop { position: absolute; inset: 0; background: var(--cream-dark); opacity: .92; }
+  .vv-modal__card {
+    position: relative; margin: 8vh auto 0; width: min(680px, 92vw);
+    background: var(--white); border: 1px solid var(--line); border-radius: var(--radius-md);
+    padding: clamp(20px, 3vw, 32px);
+  }
+  .vv-modal__card h2 { font-family: var(--font-head); font-size: 1.1rem; font-weight: 700; margin-bottom: 8px; }
+  .vv-modal__card p { font-size: var(--text-sm); color: var(--ink-light); line-height: 1.7; margin-bottom: 12px; }
+  .vv-modal__card textarea {
+    width: 100%; height: 300px; resize: vertical; outline: none;
+    font-family: var(--font-body); font-size: var(--text-sm); line-height: 1.8;
+    border: 1px solid var(--line); border-radius: var(--radius-sm);
+    padding: 12px 14px; background: var(--cream); color: var(--ink);
+  }
+  .vv-modal__card textarea:focus { border-color: var(--green); background: var(--white); }
+  .vv-modal__actions { display: flex; gap: 8px; justify-content: flex-end; margin-top: 14px; }
+
+  .toast {
+    position: fixed; bottom: 28px; left: 50%; transform: translateX(-50%);
+    background: var(--ink); color: var(--cream); font-size: var(--text-sm);
+    padding: 10px 22px; border-radius: var(--radius-sm); opacity: 0;
+    transition: opacity var(--dur-fast) var(--ease-standard); pointer-events: none; z-index: 99;
+  }
+  .toast.show { opacity: .97; }
+
+  a:focus-visible, button:focus-visible, textarea:focus-visible { outline: 2px solid var(--green-deep); outline-offset: 2px; }
+  @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+</style>
+</head>
+<body>
+
+<aside class="sidebar" id="sidebar">
+  <div class="s-logo" data-tip="文案脚本工作台">
+    <svg aria-label="文案脚本工作台标识" role="img" viewBox="0 0 32 32">
+      <rect fill="var(--green)" width="32" height="32" rx="5"/>
+      <rect fill="var(--cream)" x="6" y="7" width="20" height="3" rx="1.5" opacity=".9"/>
+      <rect fill="var(--cream)" x="6" y="14.5" width="14" height="3" rx="1.5" opacity=".6"/>
+      <rect fill="var(--yellow)" x="6" y="22" width="8" height="3" rx="1.5"/>
+    </svg>
+  </div>
+  <nav class="s-nav">
+    <button class="s-item active" data-stage="1" aria-label="文案 · 当前阶段" data-tip="文案 · 当前阶段">
+      <span class="ico"><svg viewBox="0 0 20 20" aria-hidden="true"><rect fill="var(--green)" width="20" height="20" rx="3"/><path d="M6 5 C8 4.4 9.6 4.6 10.6 5.4 C11.6 4.6 13.2 4.4 15.2 4.8 V14 C13.2 13.6 11.6 13.8 10.6 14.6 C9.6 13.8 8 13.6 6 14 Z" fill="none" stroke="var(--cream)" stroke-width="1.4" stroke-linejoin="round"/><path d="M10.6 5.4 V14.6" stroke="var(--cream)" stroke-width="1.4"/></svg></span>
+    </button>
+    <button class="s-item disabled" data-stage="2" aria-label="录音" data-tip="录音 · 下一版开放" title="录音 · 未开放">
+      <span class="ico"><svg viewBox="0 0 20 20" aria-hidden="true"><rect fill="var(--green)" width="20" height="20" rx="3"/><rect x="8.2" y="4" width="3.6" height="8" rx="1.8" fill="var(--cream)"/><path d="M5.6 10.4 a4.4 4.4 0 0 0 8.8 0 M10 14.8 V17 M7.4 17 H12.6" stroke="var(--cream)" stroke-width="1.4" fill="none" stroke-linecap="round"/></svg></span>
+    </button>
+    <button class="s-item disabled" data-stage="3" aria-label="时间戳" data-tip="时间戳 · 计划中" title="时间戳 · 未开放">
+      <span class="ico"><svg viewBox="0 0 20 20" aria-hidden="true"><rect fill="var(--green)" width="20" height="20" rx="3"/><circle cx="10" cy="10" r="6" fill="none" stroke="var(--cream)" stroke-width="1.4"/><path d="M10 6.4 V10 L12.8 11.6" stroke="var(--cream)" stroke-width="1.4" fill="none" stroke-linecap="round"/></svg></span>
+    </button>
+  </nav>
+</aside>
+
+<main class="main">
+
+  <section class="hero">
+    <div class="hero-in">
+      <p class="eyebrow">Stage 1 · Script</p>
+      <h1>文案</h1>
+      <p class="lead">一段话写完，换行即分句；保存 txt，或投放到录音阶段。</p>
+    </div>
+  </section>
+
+  <div class="toolbar">
+    <button class="tb" id="btnUndo" disabled data-tip="Ctrl+Z">↩ 撤销</button>
+    <button class="tb" id="btnRedo" disabled data-tip="Ctrl+Shift+Z">↪ 重做</button>
+    <button class="tb" id="btnReset" disabled data-tip="丢弃全部改动，回到刚导入或粘贴时的内容">撤销全部改动</button>
+    <span class="tb-sep"></span>
+    <button class="tb" id="btnImport" data-tip="打开 txt 文件">导入文件</button>
+    <button class="tb" id="btnPaste" data-tip="整段粘贴进来，每行一句">粘贴文案</button>
+    <span style="margin-left:auto"></span>
+    <button class="tb primary" id="btnToStage2" disabled data-tip="把文案带进录音阶段&#10;左边文案提词、右边录制（下一版开放）">投放到录音 →</button>
+  </div>
+
+  <div class="main-pad">
+    <div class="workbench">
+      <div class="editor-col">
+        <div class="editor-card">
+          <textarea class="editor" id="editor" spellcheck="false" placeholder="一句一行，直接写。&#10;换行就是分句，以后时间戳按行来挂。"></textarea>
+        </div>
+        <div class="actions-row">
+          <button class="tb primary" id="btnSave" data-tip="Ctrl+S">保存</button>
+          <button class="tb" id="btnSaveAs" data-tip="存新文件">另存为</button>
+          <button class="tb" id="btnCopy" data-tip="Ctrl+C 整段">复制文案</button>
+          <button class="tb" id="btnCopyAgent" data-tip="复制字幕样式说明 + 全文&#10;粘贴给 Agent 即可还原样式要求">复制给Agent</button>
+          <span class="hint"><span id="lineHint">0 句</span><span id="autoHint"></span></span>
+        </div>
+      </div>
+      <aside class="pv-col" aria-label="字幕实时预览">
+        <div class="pv-card" data-or="p">
+          <div class="pv-head">
+            <span class="pv-title">竖屏 9:16 · 抖音系</span>
+            <span class="lamp empty" data-lamp>空行</span>
+          </div>
+          <button class="phone portrait" data-zoom aria-label="竖屏字幕预览，点击放大到真机尺寸">
+            <span class="sub" data-sub></span>
+          </button>
+          <div class="pv-ctl">
+            <div class="pv-row"><span class="lab">字体</span><select data-ctl="font"></select></div>
+            <div class="pv-row"><span class="lab">字号</span><input type="range" data-ctl="size" min="2" max="8" step="0.5"><span class="val" data-val="size"></span></div>
+            <div class="pv-row"><span class="lab">离底</span><input type="range" data-ctl="bottom" min="1" max="25" step="1"><span class="val" data-val="bottom"></span></div>
+            <div class="pv-row">
+              <span class="lab">样式</span>
+              <label class="tog"><input type="checkbox" data-ctl="stroke">描边</label>
+              <label class="tog"><input type="checkbox" data-ctl="bar">底色条</label>
+            </div>
+          </div>
+        </div>
+        <div class="pv-card" data-or="l">
+          <div class="pv-head">
+            <span class="pv-title">横屏 16:9 · B站/全屏</span>
+            <span class="lamp empty" data-lamp>空行</span>
+          </div>
+          <button class="phone landscape" data-zoom aria-label="横屏字幕预览，点击放大到真机尺寸">
+            <span class="sub" data-sub></span>
+          </button>
+          <div class="pv-ctl">
+            <div class="pv-row"><span class="lab">字体</span><select data-ctl="font"></select></div>
+            <div class="pv-row"><span class="lab">字号</span><input type="range" data-ctl="size" min="4" max="14" step="0.5"><span class="val" data-val="size"></span></div>
+            <div class="pv-row"><span class="lab">离底</span><input type="range" data-ctl="bottom" min="1" max="25" step="1"><span class="val" data-val="bottom"></span></div>
+            <div class="pv-row">
+              <span class="lab">样式</span>
+              <label class="tog"><input type="checkbox" data-ctl="stroke">描边</label>
+              <label class="tog"><input type="checkbox" data-ctl="bar">底色条</label>
+            </div>
+          </div>
+        </div>
+      </aside>
+    </div>
+  </div>
+</main>
+
+<div class="vv-modal" id="pasteModal">
+  <div class="vv-modal__backdrop" id="pasteBackdrop"></div>
+  <div class="vv-modal__card">
+    <h2>粘贴文案</h2>
+    <p>整段粘贴进来，每行一句。会替换文本框当前内容（可 Ctrl+Z 撤销）。</p>
+    <textarea id="pasteArea" placeholder="第一句…&#10;第二句…&#10;第三句…"></textarea>
+    <div class="vv-modal__actions">
+      <button class="tb" id="pasteCancel">取消</button>
+      <button class="tb primary" id="pasteGo">粘贴</button>
+    </div>
+  </div>
+</div>
+
+<div class="zoom-modal" id="zoomModal">
+  <div class="zoom-phone" id="zoomPhone"><span class="sub" id="zoomSub"></span></div>
+  <span class="zoom-tip">真机比例 · 点任意处关闭</span>
+</div>
+
+<div class="toast" id="toast"></div>
+<input type="file" id="fileInput" accept=".txt" hidden>
+
+<script>
+const LS_KEY = "script_editor_stage1_v2";
+const editor = document.getElementById("editor");
+const toastEl = document.getElementById("toast");
+const lineHint = document.getElementById("lineHint");
+
+let baseline = null;
+let history = [], hPos = -1;
+let fileHandle = null;
+
+// ── 状态与撤销栈 ──
+function snapshot() {
+  history = history.slice(0, hPos + 1);
+  history.push(editor.value);
+  if (history.length > 100) history.shift();
+  hPos = history.length - 1;
+  persist(); updateSummary();
+}
+function persist() { localStorage.setItem(LS_KEY, JSON.stringify({ text: editor.value, ts: Date.now() })); }
+function restore(v) { editor.value = v; persist(); updateSummary(); }
+
+function updateSummary() {
+  const v = editor.value;
+  document.getElementById("btnUndo").disabled = hPos <= 0;
+  document.getElementById("btnRedo").disabled = hPos >= history.length - 1;
+  document.getElementById("btnReset").disabled = baseline === null || v === baseline;
+  document.getElementById("btnToStage2").disabled = !v.trim();
+  lineHint.textContent = v.split("\n").filter(l => l.trim()).length + " 句";
+}
+
+let snapTimer = null;
+editor.addEventListener("input", () => {
+  updateSummary();
+  clearTimeout(snapTimer);
+  snapTimer = setTimeout(snapshot, 400);
+});
+
+document.getElementById("btnUndo").onclick = () => { if (hPos > 0) { hPos--; restore(history[hPos]); } };
+document.getElementById("btnRedo").onclick = () => { if (hPos < history.length - 1) { hPos++; restore(history[hPos]); } };
+document.getElementById("btnReset").onclick = () => {
+  if (baseline === null) return;
+  if (!confirm("丢弃全部改动，回到刚导入或粘贴时的内容？")) return;
+  editor.value = baseline;
+  history = []; hPos = -1;
+  snapshot();
+  toast("已恢复刚导入的内容");
+};
+document.addEventListener("keydown", e => {
+  if (e.target instanceof Element && e.target.closest(".vv-modal")) return;
+  if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "z" && !e.shiftKey) {
+    if (hPos > 0) { e.preventDefault(); hPos--; restore(history[hPos]); }
+  } else if ((e.ctrlKey || e.metaKey) && (e.key.toLowerCase() === "y" || (e.key.toLowerCase() === "z" && e.shiftKey))) {
+    if (hPos < history.length - 1) { e.preventDefault(); hPos++; restore(history[hPos]); }
+  }
+});
+
+// ── 导入 ──
+function importText(text, name) {
+  if (!text.trim()) { toast("内容是空的"); return; }
+  editor.value = text.replace(/\r\n?/g, "\n");
+  baseline = editor.value;
+  history = []; hPos = -1;
+  snapshot();
+  toast(name ? `已导入（${name}）` : "已导入");
+}
+function openFiles() {
+  if (!window.showOpenFilePicker) { document.getElementById("fileInput").click(); return; }
+  showOpenFilePicker({
+    types: [{ description: "文本文件", accept: { "text/plain": [".txt"] } }]
+  }).then(([h]) => h.getFile()).then(async file => {
+    importText(await file.text(), file.name);
+  }).catch(err => { if (err.name !== "AbortError") toast("打开失败：" + err.name); });
+}
+document.getElementById("btnImport").onclick = openFiles;
+document.getElementById("fileInput").onchange = async e => {
+  const file = e.target.files[0];
+  if (!file) return;
+  importText(await file.text(), file.name);
+  e.target.value = "";
+};
+
+// ── 保存 / 另存为 / 复制 ──
+async function writeToHandle(handle, content) {
+  const w = await handle.createWritable();
+  await w.write(new Blob([content], { type: "text/plain;charset=utf-8" }));
+  await w.close();
+}
+function downloadBlob(content, name) {
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(new Blob([content], { type: "text/plain;charset=utf-8" }));
+  a.download = name;
+  a.click(); URL.revokeObjectURL(a.href);
+}
+document.getElementById("btnSave").onclick = async () => {
+  if (fileHandle) {
+    try { await writeToHandle(fileHandle, editor.value); toast("已保存"); }
+    catch (err) { toast("保存失败：" + err.name); }
+    return;
+  }
+  document.getElementById("btnSaveAs").click();
+};
+document.getElementById("btnSaveAs").onclick = async () => {
+  if (window.showSaveFilePicker) {
+    try {
+      fileHandle = await showSaveFilePicker({
+        suggestedName: "文案脚本.txt",
+        types: [{ description: "文本文件", accept: { "text/plain": [".txt"] } }]
+      });
+      await writeToHandle(fileHandle, editor.value);
+      toast("已另存（之后「保存」直接写回此文件）");
+    } catch (err) {
+      if (err.name !== "AbortError") toast("另存失败：" + err.name);
+    }
+  } else {
+    downloadBlob(editor.value, "文案脚本.txt");
+    toast("浏览器不支持另存对话框，已下载");
+  }
+};
+document.getElementById("btnCopy").onclick = async () => {
+  try { await navigator.clipboard.writeText(editor.value); toast("已复制文案"); }
+  catch { toast("复制失败，请用另存为"); }
+};
+
+// ── 粘贴文案 ──
+const pasteModal = document.getElementById("pasteModal");
+const pasteArea = document.getElementById("pasteArea");
+function openPaste() {
+  pasteModal.classList.add("show");
+  setTimeout(() => pasteArea.focus(), 50);
+}
+function closePaste() { pasteModal.classList.remove("show"); pasteArea.value = ""; }
+document.getElementById("btnPaste").onclick = openPaste;
+document.getElementById("pasteCancel").onclick = closePaste;
+document.getElementById("pasteBackdrop").onclick = closePaste;
+document.getElementById("pasteGo").onclick = () => {
+  const raw = pasteArea.value;
+  if (!raw.trim()) { toast("先粘贴文案"); return; }
+  closePaste();
+  importText(raw, "粘贴");
+};
+
+// ── 投放/侧栏（后续阶段入口）──
+document.getElementById("btnToStage2").onclick = () => toast("录音阶段下一版开放：文案将自动带过去");
+document.querySelectorAll(".s-item.disabled").forEach(b => {
+  b.onclick = () => toast(b.getAttribute("aria-label") + "阶段下一版开放");
+});
+
+// ── Toast ──
+function toast(msg) {
+  toastEl.textContent = msg; toastEl.classList.add("show");
+  clearTimeout(toast._t);
+  toast._t = setTimeout(() => toastEl.classList.remove("show"), 2400);
+}
+
+// ── 启动（含 v1 表格数据迁移）──
+function rowsToText(rows) {
+  const out = []; let prev = null;
+  rows.forEach(r => {
+    if (prev !== null && r.seg !== prev) out.push("");
+    prev = r.seg;
+    if (r.text && r.text.trim()) out.push(r.text);
+  });
+  return out.join("\n");
+}
+(function init() {
+  let text = "";
+  const saved = localStorage.getItem(LS_KEY);
+  if (saved) {
+    try {
+      const s = JSON.parse(saved);
+      if (s && typeof s.text === "string") text = s.text;
+    } catch {}
+  }
+  if (!text) {
+    const legacy = localStorage.getItem("script_editor_stage1_v1");
+    if (legacy) {
+      try {
+        const s = JSON.parse(legacy);
+        if (s && Array.isArray(s.rows)) text = rowsToText(s.rows);
+      } catch {}
+    }
+  }
+  editor.value = text;
+  history = [text]; hPos = 0;
+  updateSummary();
+})();
+</script>
+</body>
+</html>
